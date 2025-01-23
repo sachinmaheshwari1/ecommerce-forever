@@ -46,7 +46,15 @@ const placeOrderRazorpay = async (req, res) => {
 
 // All Ordrs data for Admin Pannel
 const allOrders = async (req, res) => {
+  try {
     
+    const orders = await orderModel.find({})
+    res.json({success:true,orders})
+    
+  } catch (error) {
+    console.log(error);
+    res.json({success:false,message:error.message})
+  }  
 }
 
 // User order data for user-frontend
@@ -66,7 +74,17 @@ const userOrders = async (req, res) => {
 
 // Update order status from Admin Pannel
 const updateStatus = async (req, res) => {
-    
+    try {
+        
+        const { orderId, status} = req.body
+
+        await orderModel.findByIdAndUpdate(orderId, {status})
+        res.json({success:true,message:'Status Updated'})
+
+    } catch (error) {
+        console.log(error);
+        res.json({success:false,message:error.message})
+    }
 }
 
 export {placeOrder, placeOrderStripe, placeOrderRazorpay,allOrders, userOrders, updateStatus}
