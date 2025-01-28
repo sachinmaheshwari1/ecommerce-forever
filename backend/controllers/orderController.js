@@ -1,14 +1,20 @@
-import { currency } from "../../admin-frontend/src/App.jsx"
+
 import orderModel from "../models/orderModel.js"
 import userModel from "../models/userModel.js"
-import Stripe from 'stripe'
+
+import Razorpay from 'razorpay'
 
 // global variables
 const currency = 'inr'
 const deliveryCharges = 10
 
 // gateway initialize
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+
+
+const razorpayInstance = new Razorpay({
+    key_id : process.env.RAZORPAY_KEY_ID,
+    key_secret : process.env.RAZORPAY_KEY_SECRET,
+})
 // Placing orders using COD Method
 const placeOrder = async (req, res) => {
 
@@ -42,19 +48,19 @@ const placeOrder = async (req, res) => {
 
 }
 
-// Placing orders using Stripe Method
-const placeOrderStripe = async (req, res) => {
-   try {
 
-    const { userId, items, amount, address} = req.body
-    const { origin } = req.headers;
+// Placing orders using Razorpay Method
+const placeOrderRazorpay = async (req, res) => {
+    try {
+        const { userId, items, amount, address} = req.body
+  
 
     const orderData = {
         userId,
         items,
         address,
         amount,
-        paymentMethod:"Stripe",
+        paymentMethod:"Razorpay",
         payment:false,
         date:Date.now()
     }
@@ -62,48 +68,46 @@ const placeOrderStripe = async (req, res) => {
     const newOrder = new orderModel(orderData)
     await newOrder.save()
 
-    const line_items = items.map((item) => ({
-        price_data: {
-            currency: currency,
-            product_data: {
-                name: item.name,
-            },
-            unit_amount: item.price * 100
-            },
-            quantity: item.quantity
-        
-    }))
+    const options = {
+        amount: amount*100,
+        currency: currency.toUpperCase(),
+        receipt : newOrder._id.toString()
+    }
 
-    line_items.push({
-        price_data: {
-            currency: currency,
-            product_data: {
-                name: 'Delivery Charges',
-            },
-            unit_amount: deliveryCharges * 100
-            },
-            quantity: 1
-        
+    await razorpayInstance.orders.create(options, (error, order) => {
+        if (error) {
+            console.log(error);
+            return res.json({success:false, message:error})
+        }
+        res.json({success:true, order})
     })
 
-    const session = await stripe.checkout.sessions.create({
-        session_url: `${origin}/verify?success=true&orderId=${newOrder._id}`,
-        cancel_url:  `${origin}/verify?success=false&orderId=${newOrder._id}`,
-        line_items,
-        mode: 'payment',
-    })
-
-    res.json({success:true, session_url:session.url})
-
-   } catch (error) {
-    console.log(error);
-    res.json({success:false,message:error.message})
-   } 
+    } catch (error) {
+        console.log(error);
+        res.json({success:false,message:error.message})
+    }
 }
 
-// Placing orders using Razorpay Method
-const placeOrderRazorpay = async (req, res) => {
-    
+const verifyRazorpay = async (req, res) => {
+    try {
+        
+        const { userId, razorpay_order_id } = req.body
+
+        const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id)
+        if (orderInfo.status === 'paid') {
+            await orderModel.findByIdAndUpdate(orderInfo.receipt,{payment:true})
+            await orderModel.findByIdAndUpdate(userId,{cartData:{}})
+             res.json({success:true, message:"Payment Successful"})
+
+        } else {
+            res.json({success:false, message:"Payment Failed"})
+        }
+        
+        
+    } catch (error) {
+        console.log(error);
+        res.json({success:false,message:error.message}) 
+    }
 }
 
 // All Ordrs data for Admin Pannel
@@ -149,4 +153,4 @@ const updateStatus = async (req, res) => {
     }
 }
 
-export {placeOrder, placeOrderStripe, placeOrderRazorpay,allOrders, userOrders, updateStatus}
+export {verifyRazorpay, placeOrder,  placeOrderRazorpay,allOrders, userOrders, updateStatus}
