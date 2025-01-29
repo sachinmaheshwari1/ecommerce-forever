@@ -1,7 +1,9 @@
 
 # MERN Project Documentation
 
-This project is a MERN stack application that features an image-sharing capability powered by Cloudinary. It is divided into three main folders: `users-frontend`, `backend`, and `admin-frontend`. Below is an overview of the project's structure, functionality, and technologies used.
+FOREVER is a React-based e-commerce application designed to provide a seamless shopping experience for users. It features user authentication, product browsing, a shopping cart, and integration with Razorpay for secure payment processing. FOREVER offers a wide range of clothing items for men, women, and kids. The app also includes a cash-on-delivery option for greater flexibility in payment methods.
+
+Through this project, I have gained a comprehensive understanding of full-stack development, utilizing React for frontend development, Node.js and Express.js for backend services, MongoDB for database management, and various third-party services such as Cloudinary for image hosting and Razorpay for payment gateway integration. The application is deployed using Vercel and Render for easy access and scalability.
 
 ## Project Structure
 
