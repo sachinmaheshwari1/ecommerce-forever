@@ -1,6 +1,8 @@
 
 # MERN Project Documentation
 
+Live Link - ecommerce-forever-user-frontend.vercel.app
+
 FOREVER is a React-based e-commerce application offering a seamless shopping experience with features like user authentication, product browsing, a shopping cart, and secure payment processing via Razorpay. It also includes a cash-on-delivery option and uses Cloudinary for image hosting. The app is deployed on Vercel and Render for scalability.It is divided into three main folders: `users-frontend`, `backend`, and `admin-frontend`. Below is an overview of the project's structure, functionality, and technologies used.
 
 ## Project Structure
